@@ -905,6 +905,10 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 	# Define an output directory
 	OutputDirectory = "%s/%s/%s" % (LikelihoodDirectory, resultsPrefix, sourceName)
 
+	# Check if the user has write access to this location.  If not, create a subdirectory in the currnet working directory
+	if os.access(OutputDirectory, os.W_OK) == False:
+		OutputDirectory = os.getcwd() + '/%s' % sourceName
+
 
 	# Get the job id, if it exists
 	JobID = os.environ.get('LSB_JOBID')
@@ -2090,6 +2094,11 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 	# Define an output directory
 	OutputDirectory = "%s/Results/%s" % (LikelihoodDirectory, sourceName)
 
+	# Check if the user has write access to this location.  If not, create a subdirectory in the currnet working directory
+	if os.access(OutputDirectory, os.W_OK) == False:
+		OutputDirectory = os.getcwd() + '/%s' % sourceName
+
+
 	# Define the log directory
 	LogDirectory = OutputDirectory + '/dtsmap'
 	JobsDirectory = OutputDirectory + '/dtsmap'
@@ -2629,6 +2638,10 @@ def Lightcurve(sourceName, ra, dec, tmin, tmax, dt, emin=100, emax=1e5, tsMin=25
 
 	# Define an output directory
 	OutputDirectory = "%s/Results/%s" % (LikelihoodDirectory, sourceName)
+
+	# Check if the user has write access to this location.  If not, create a subdirectory in the currnet working directory
+	if os.access(OutputDirectory, os.W_OK) == False:
+		OutputDirectory = os.getcwd() + '/%s' % sourceName
 
 	# Define the log directory
 	LogDirectory = OutputDirectory + '/lightcurve'
