@@ -44,7 +44,6 @@ from UnbinnedAnalysis import *
 import BinnedAnalysis
 from UpperLimits import UpperLimits
 import IntegralUpperLimit as IUL
-import sunpos
 from matplotlib.ticker import AutoMinorLocator
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 
