@@ -2000,7 +2000,7 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 				plot.text(i+5e4,j,k,clip_on=True, alpha=1,size=8,color='skyblue')
 				pass
 
-			Annotate the plot with the sun position if the sun is within 25 degrees of ROI center
+			# Annotate the plot with the sun position if the sun is within 25 degrees of ROI center
 			try:
 				SkyDir = getSunPosition( (float(tmin) + float(tmax)) / 2.0 )
 				SunRa = SkyDir.ra()
