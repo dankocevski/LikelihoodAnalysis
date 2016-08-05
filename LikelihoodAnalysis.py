@@ -54,22 +54,22 @@ print "Done."
 def jd_from_MET( met ):
 
 	# Converts from MET to Julian Date
-    julianDate = skymaps.JulianDate((skymaps.JulianDate_missionStart().seconds() + met)/skymaps.JulianDate.secondsPerDay)
+	julianDate = skymaps.JulianDate((skymaps.JulianDate_missionStart().seconds() + met)/skymaps.JulianDate.secondsPerDay)
 
-    return julianDate
+	return julianDate
 
 ##########################################################################################    
 
 def getSunPosition( met ):
 
-    # Environment variable (you need FTOOLS installed and configured)
-    os.environ['TIMING_DIR']=os.path.join(os.environ['HEADAS'],"refdata")
+	# Environment variable (you need FTOOLS installed and configured)
+	os.environ['TIMING_DIR']=os.path.join(os.environ['HEADAS'],"refdata")
 
-    # Get the sun direction
-    sun = skymaps.SolarSystem(skymaps.SolarSystem.SUN)
-    SunSkyDir = sun.direction(jd_from_MET(met))
+	# Get the sun direction
+	sun = skymaps.SolarSystem(skymaps.SolarSystem.SUN)
+	SunSkyDir = sun.direction(jd_from_MET(met))
 
-    return SunSkyDir
+	return SunSkyDir
 
 
 ##########################################################################################
@@ -80,17 +80,17 @@ def computeEnergyFlux(photonflux, index, emin=100, emax=10000):
 	photonflux = float(photonflux)
 	index = float(index)
 
-    #print 'index= %s '
-    if index == -2:
-        index = -2.000001
-    elif index == -1:
-        index = -1.000001
-        pass
+	#print 'index= %s '
+	if index == -2:
+		index = -2.000001
+	elif index == -1:
+		index = -1.000001
+		pass
 
-    energyflux = photonflux*(1.+index)/(2+index)*(pow(emax,index+2)-pow(emin,index+2))/(pow(emax,index+1)-pow(emin,index+1))
-    print 'index= %s , <E>= %s' %(index,energyflux/photonflux)
+	energyflux = photonflux*(1.+index)/(2+index)*(pow(emax,index+2)-pow(emin,index+2))/(pow(emax,index+1)-pow(emin,index+1))
+	print 'index= %s , <E>= %s' %(index,energyflux/photonflux)
 
-    return energyflux#*MeV2erg
+	return energyflux#*MeV2erg
 
 ##########################################################################################
 
