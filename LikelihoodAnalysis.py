@@ -50,6 +50,29 @@ from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 
 print "Done."
 
+
+##########################################################################################
+def jd_from_MET( met ):
+
+	# Converts from MET to Julian Date
+    julianDate = skymaps.JulianDate((skymaps.JulianDate_missionStart().seconds() + met)/skymaps.JulianDate.secondsPerDay)
+
+    return julianDate
+
+##########################################################################################    
+
+def getSunPosition( met ):
+
+    # Environment variable (you need FTOOLS installed and configured)
+    os.environ['TIMING_DIR']=os.path.join(os.environ['HEADAS'],"refdata")
+
+    # Get the sun direction
+    sun = skymaps.SolarSystem(skymaps.SolarSystem.SUN)
+    SunSkyDir = sun.direction(jd_from_MET(met))
+
+    return SunSkyDir
+
+
 ##########################################################################################
 
 def computeEnergyFlux(photonflux, index, emin=100, emax=10000):
@@ -1978,9 +2001,9 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 				plot.text(i+5e4,j,k,clip_on=True, alpha=1,size=8,color='skyblue')
 				pass
 
-			# Annotate the plot with the sun position if the sun is within 25 degrees of ROI center
+			Annotate the plot with the sun position if the sun is within 25 degrees of ROI center
 			try:
-				SkyDir = sunpos.getSunPosition( (float(tmin) + float(tmax)) / 2.0 )
+				SkyDir = getSunPosition( (float(tmin) + float(tmax)) / 2.0 )
 				SunRa = SkyDir.ra()
 				SunDec = SkyDir.dec()
 
