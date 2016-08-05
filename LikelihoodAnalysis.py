@@ -50,6 +50,21 @@ from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 
 print "Done."
 
+##########################################################################################
+
+def computeEnergyFlux(photonflux, index, emin=100, emax=10000):
+
+    #print 'index= %s '
+    if index == -2:
+        index = -2.000001
+    elif index == -1:
+        index = -1.000001
+        pass
+
+    energyflux = photonflux*(1.+index)/(2+index)*(pow(emax,index+2)-pow(emin,index+2))/(pow(emax,index+1)-pow(emin,index+1))
+    print 'index= %s , <E>= %s' %(index,energyflux/photonflux)
+
+    return energyflux#*MeV2erg
 
 ##########################################################################################
 
@@ -1482,12 +1497,19 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 				# print ul[sourceOfInterest].results
 
 				# Bayesian upper limits
-				upper_limit95, results = IUL.calc_int(like, sourceOfInterest, cl=0.95)
+				# upper_limit95, results = IUL.calc_int(like, sourceOfInterest, cl=0.95, freeze_all=True)				
+				photonFluxUpperLimit95, results = IUL.calc_int(like, sourceOfInterest, cl=0.95)
+
+				# Convert the photon flux upper limit to an energy flux upper limit
+				energyFluxUpperLimit95 = computeEnergyFlux(photonFluxUpperLimit95, '-2.1', emin=float(emin), emax=float(emax))
+
+				
 
 				# Print the maximum likelihood results
 				print "\nTS: %s" % like.Ts(sourceOfInterest)
 				print "Ra Dec: %.3f %.3f" % (float(ra), float(dec))
-				print "Photon Flux Upper Limit: %s ph cm-2 s-1" % upper_limit95
+				print "Photon Flux Upper Limit: %s ph cm-2 s-1" % photonFluxUpperLimit95
+				print "Energy Flux Upper Limit (index=-2.1): %s ph cm-2 s-1" % energyFluxUpperLimit95
 
 				# Save the likelihood results
 				print '\nSaving results to:\n%s' % likelihoodResults
@@ -1495,8 +1517,9 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 				output.write("Likelihood Results\n")
 				output.write("TS: %s\n" % like.Ts(sourceOfInterest))
 				output.write("RaDec: %.3f %.3f +/- %.3f\n" % (float(ra), float(dec), 0))
-				# output.write("PhotonIndex: %s +/- %s\n" % (PhotonIndex, PhotonIndexError))
-				output.write("PhotonFluxUpperLimit: %s\n" % upper_limit95)
+				output.write("PhotonIndex: %s +/- %s\n" % (PhotonIndex, PhotonIndexError))
+				output.write("PhotonFluxUpperLimit: %s\n" % photonFluxUpperLimit95)
+				output.write("EnergyFluxUpperLimit: %s\n" % energyFluxUpperLimit95)				
 				output.close()
 
 
@@ -2060,8 +2083,12 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 	if JobID != None:
 
 		print "\nMoving results from scratch disk..."
-		print "mv %s %s" % (OutputDirectory, OutputDirectory_NSF)
-		os.system("mv %s %s" % (OutputDirectory, OutputDirectory_NSF))
+		if os.path.isdir(OutputDirectory_NSF):
+			print "mv %s/* %s" % (OutputDirectory, OutputDirectory_NSF)
+			os.system("mv %s/* %s" % (OutputDirectory, OutputDirectory_NSF))
+		else:
+			print "mv %s %s" % (OutputDirectory, OutputDirectory_NSF)
+			os.system("mv %s %s" % (OutputDirectory, OutputDirectory_NSF))
 
 		# Delete the scratch space directory
 		if(os.path.isdir(OutputDirectory)==True):
