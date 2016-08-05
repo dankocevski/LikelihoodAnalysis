@@ -1529,7 +1529,6 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 				# Convert the photon flux upper limit to an energy flux upper limit
 				energyFluxUpperLimit95 = computeEnergyFlux(photonFluxUpperLimit95, -2.1, emin=float(emin), emax=float(emax))
 
-				
 
 				# Print the maximum likelihood results
 				print "\nTS: %s" % like.Ts(sourceOfInterest)
@@ -1543,7 +1542,6 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 				output.write("Likelihood Results\n")
 				output.write("TS: %s\n" % like.Ts(sourceOfInterest))
 				output.write("RaDec: %.3f %.3f +/- %.3f\n" % (float(ra), float(dec), 0))
-				output.write("PhotonIndex: %s +/- %s\n" % (PhotonIndex, PhotonIndexError))
 				output.write("PhotonFluxUpperLimit: %s\n" % photonFluxUpperLimit95)
 				output.write("EnergyFluxUpperLimit: %s\n" % energyFluxUpperLimit95)				
 				output.close()
