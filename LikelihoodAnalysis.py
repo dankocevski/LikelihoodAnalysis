@@ -76,6 +76,10 @@ def getSunPosition( met ):
 
 def computeEnergyFlux(photonflux, index, emin=100, emax=10000):
 
+	# Make sure everything is a float
+	photonflux = float(photonflux)
+	index = float(index)
+
     #print 'index= %s '
     if index == -2:
         index = -2.000001
@@ -1523,7 +1527,7 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 				photonFluxUpperLimit95, results = IUL.calc_int(like, sourceOfInterest, cl=0.95)
 
 				# Convert the photon flux upper limit to an energy flux upper limit
-				energyFluxUpperLimit95 = computeEnergyFlux(photonFluxUpperLimit95, '-2.1', emin=float(emin), emax=float(emax))
+				energyFluxUpperLimit95 = computeEnergyFlux(photonFluxUpperLimit95, -2.1, emin=float(emin), emax=float(emax))
 
 				
 
