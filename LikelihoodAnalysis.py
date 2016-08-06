@@ -942,13 +942,21 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 	if(os.path.isdir(LikelihoodDirectory) == False):
 		LikelihoodDirectory = os.getcwd()
 
-
-	# Define an output directory
-	OutputDirectory = "%s/%s/%s" % (LikelihoodDirectory, resultsPrefix, sourceName)
+	# Define the results directory
+	ResultsDirectory = "%s/%s" % (LikelihoodDirectory, resultsPrefix)
 
 	# Check if the user has write access to this location.  If not, create a subdirectory in the currnet working directory
-	if os.access(OutputDirectory, os.W_OK) == False:
+	if os.access(ResultsDirectory, os.W_OK) == False:
+		# Set the output directory to the working directory
 		OutputDirectory = os.getcwd() + '/%s' % sourceName
+	else:
+		# Set the output directory within the likelihood directory 
+		OutputDirectory = "%s/%s/%s" % (LikelihoodDirectory, resultsPrefix, sourceName)
+
+	# Create the output directory
+	print "\nCreating custom output directory:\n%s" % OutputDirectory        
+	cmd = "mkdir -p " + OutputDirectory
+	os.system(cmd)
 
 
 	# Get the job id, if it exists
@@ -979,10 +987,6 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 		OutputDirectory = ScratchDirectory
 
 
-	# Create the output directory
-	print "\nCreating custom output directory:\n%s" % OutputDirectory        
-	cmd = "mkdir -p " + OutputDirectory
-	os.system(cmd)
 
 	# Extended source templates
 	extendedSourcesDirectory = LikelihoodDirectory + '/ExtendedSources/Templates/'
