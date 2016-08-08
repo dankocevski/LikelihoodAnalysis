@@ -14,7 +14,12 @@ source /nfs/slac/g/ki/ki08/kocevski/Likelihood/Scripts/SetupScienceTools_10-01-0
 
 ### Usage Examples
 
-Determine the significance of a new point source and calculate it's flux (or flux upper limit):_
+Importing the module:
+```python 
+import LikelihoodAnalysis
+```
+
+Determine the significance of a new point source and calculate it's flux (or flux upper limit):
 ```python 
 LikelihoodAnalysis.SourceAnalysis('CandidateSource', RA, Dec, METStart, METStop, irfs='P8R2_SOURCE_V6')
 ```
