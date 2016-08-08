@@ -9,8 +9,9 @@ An overview of the detection, flux determination and spectral modeling of Fermi 
 http://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/likelihood_tutorial.html
 
 ### Enviroment Setup
-
+```bash 
 source /nfs/slac/g/ki/ki08/kocevski/Likelihood/Scripts/SetupScienceTools_10-01-01.csh
+```
 
 ### Usage Examples
 
