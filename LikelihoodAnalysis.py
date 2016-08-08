@@ -953,11 +953,6 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 		# Set the output directory within the likelihood directory 
 		OutputDirectory = "%s/%s" % (ResultsDirectory, sourceName)
 
-	# Create the output directory
-	print "\nCreating custom output directory:\n%s" % OutputDirectory        
-	cmd = "mkdir -p " + OutputDirectory
-	os.system(cmd)
-
 
 	# Get the job id, if it exists
 	JobID = os.environ.get('LSB_JOBID')
@@ -986,6 +981,10 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 		# Set the scratch directory to be the output directory
 		OutputDirectory = ScratchDirectory
 
+	# Create the output directory
+	print "\nCreating custom output directory:\n%s" % OutputDirectory        
+	cmd = "mkdir -p " + OutputDirectory
+	os.system(cmd)
 
 
 	# Extended source templates
@@ -2157,10 +2156,6 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 		# Set the output directory within the likelihood directory 
 		OutputDirectory = "%s/%s" % (ResultsDirectory, sourceName)
 
-	# Create the output directory
-	print "\nCreating custom output directory:\n%s" % OutputDirectory        
-	cmd = "mkdir -p " + OutputDirectory
-	os.system(cmd)
 
 	# Define the log directory
 	LogDirectory = OutputDirectory + '/dtsmap'
@@ -2195,6 +2190,8 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 	# Calculate the pixel scale
 	xsize = int( dra / (binsize) )
 	ysize = int( ddec / (binsize) )
+
+	print "\nCreating custom fits header."
 
 	# Create the wcs string
 	headerString = """
