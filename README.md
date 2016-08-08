@@ -6,10 +6,13 @@ An overview of the detection, flux determination and spectral modeling of Fermi 
 
 http://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/likelihood_tutorial.html
 
-Enviroment Setup:
+------
+H2 Enviroment Setup
+
 source /nfs/slac/g/ki/ki08/kocevski/Likelihood/Scripts/SetupScienceTools_10-01-01.csh
 
-Usage Examples
+------
+H2 Usage Examples
 
 Determine the detection significance of a new point source and calculate it's flux (or flux upper limit):
 LikelihoodAnalysis.SourceAnalysis('CandidateSource', RA, Dec, METStart, METStop)
