@@ -33,4 +33,4 @@ Create a light curve for a new point source from METStart to METStop with a binn
 ```python
 LikelihoodAnalysis.Lightcurve('CandidateSource', RA, Dec, METStart, METStop, 86400, irfs='P8R2_SOURCE_V6') 
 ```
->>>>>>> origin/master
+
