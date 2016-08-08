@@ -909,7 +909,7 @@ def plotImage(image, wcs_astropy, filename=None, region=None, colorbarLabel=None
 
 ##########################################################################################
 
-def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25, irfs='P8R2_SOURCE_V6', ROI=12, zmax=105, association='none', dra=7, ddec=7, tsmapBinSize=0.15, getData=True, generateFiles=True, performLikelihoodFit=True, makeSourceMap=False, maketsmap=False, makeSummaryMap=False, makeModelMap=False, cleanup=True, cleanupAll=False, nuke=False, justGetData=False, fixedModel=True, statistic='UNBINNED', optimizer='MINUIT', skipDiffuseResponse=False, resultsPrefix='Results', performRefinedFit=False, removeWeakSources=False, plotFit=True, makeModel=True, fixIndex=True):
+def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25, irfs='P8R2_SOURCE_V6', ROI=12, zmax=105, association='none', dra=7, ddec=7, tsmapBinSize=0.15, getData=True, generateFiles=True, performLikelihoodFit=True, makeSourceMap=False, maketsmap=False, makeSummaryMap=False, makeModelMap=False, cleanup=True, cleanupAll=False, nuke=False, justGetData=False, fixedModel=True, statistic='UNBINNED', optimizer='MINUIT', skipDiffuseResponse=False, performRefinedFit=False, removeWeakSources=False, plotFit=True, makeModel=True, fixIndex=True):
 
 	# Import additional libraries
 	import traceback
@@ -943,7 +943,7 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 		LikelihoodDirectory = os.getcwd()
 
 	# Define the results directory
-	ResultsDirectory = "%s/%s" % (LikelihoodDirectory, resultsPrefix)
+	ResultsDirectory = "%s/Results" % (LikelihoodDirectory)
 
 	# Check if the user has write access to this location.  If not, create a subdirectory in the currnet working directory
 	if os.access(ResultsDirectory, os.W_OK) == False:
@@ -951,7 +951,7 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 		OutputDirectory = os.getcwd() + '/%s' % sourceName
 	else:
 		# Set the output directory within the likelihood directory 
-		OutputDirectory = "%s/%s/%s" % (LikelihoodDirectory, resultsPrefix, sourceName)
+		OutputDirectory = "%s/%s" % (ResultsDirectory, sourceName)
 
 	# Create the output directory
 	print "\nCreating custom output directory:\n%s" % OutputDirectory        
@@ -2133,7 +2133,7 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 
 def tsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=100, emax=1e5, tsMin=25, irfs='P8R2_SOURCE_V6', association='none', getData=True, generateFiles=True, performLikelihoodFit=False, makeSourceMap=False, cleanup=True, justGetData=False, statistic='UNBINNED', skipDiffuseResponse=False):
 
-	SourceAnalysis(sourceName, ra, dec, tmin, tmax, dra=dra, ddec=ddec, binsize=binsize, emin=emin, emax=emax, tsMin=tsMin, irfs=irfs, association=association, getData=getData, generateFiles=generateFiles, performLikelihoodFit=False, makeSourceMap=False, maketsmap=True, makeSummaryMap=False, makeModelMap=False, cleanup=True, cleanupAll=False, nuke=False, justGetData=False, fixedModel=True, statistic='UNBINNED', skipDiffuseResponse=False, resultsPrefix='Results')
+	SourceAnalysis(sourceName, ra, dec, tmin, tmax, dra=dra, ddec=ddec, binsize=binsize, emin=emin, emax=emax, tsMin=tsMin, irfs=irfs, association=association, getData=getData, generateFiles=generateFiles, performLikelihoodFit=False, makeSourceMap=False, maketsmap=True, makeSummaryMap=False, makeModelMap=False, cleanup=True, cleanupAll=False, nuke=False, justGetData=False, fixedModel=True, statistic='UNBINNED', skipDiffuseResponse=False)
 
 
 ##########################################################################################
@@ -2146,13 +2146,21 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 	# Define the script directory
 	ScriptDirectory = LikelihoodDirectory + '/Scripts'
 
-	# Define an output directory
-	OutputDirectory = "%s/Results/%s" % (LikelihoodDirectory, sourceName)
+	# Define the results directory
+	ResultsDirectory = "%s/Results" % (LikelihoodDirectory)
 
 	# Check if the user has write access to this location.  If not, create a subdirectory in the currnet working directory
-	if os.access(OutputDirectory, os.W_OK) == False:
+	if os.access(ResultsDirectory, os.W_OK) == False:
+		# Set the output directory to the working directory
 		OutputDirectory = os.getcwd() + '/%s' % sourceName
+	else:
+		# Set the output directory within the likelihood directory 
+		OutputDirectory = "%s/%s" % (ResultsDirectory, sourceName)
 
+	# Create the output directory
+	print "\nCreating custom output directory:\n%s" % OutputDirectory        
+	cmd = "mkdir -p " + OutputDirectory
+	os.system(cmd)
 
 	# Define the log directory
 	LogDirectory = OutputDirectory + '/dtsmap'
@@ -3259,11 +3267,6 @@ if __name__ == '__main__':
 		else:
 			skipDiffuseResponse = False
 
-		if 'resultsPrefix' in kwargs:
-			resultsPrefix = kwargs['resultsPrefix']
-		else:
-			resultsPrefix = 'Results'
-
 		if 'removeWeakSources' in kwargs:
 			removeWeakSources  = BOOL(kwargs['removeWeakSources'])
 		else:
@@ -3299,7 +3302,7 @@ if __name__ == '__main__':
 		else:
 
 			# Run a point source likelihood analysis
-			SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=emin, emax=emax, dra=dra, ddec=ddec, tsmapBinSize=binsize, association=association, irfs=irfs, getData=getData, generateFiles=generateFiles, justGetData=justGetData, fixedModel=fixedModel, statistic=statistic, performLikelihoodFit=performLikelihoodFit, maketsmap=maketsmap, makeSummaryMap=makeSummaryMap, makeModelMap=makeModelMap, cleanup=cleanup, cleanupAll=cleanupAll, skipDiffuseResponse=skipDiffuseResponse, resultsPrefix=resultsPrefix, nuke=nuke, removeWeakSources =removeWeakSources, fixIndex=fixIndex)
+			SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=emin, emax=emax, dra=dra, ddec=ddec, tsmapBinSize=binsize, association=association, irfs=irfs, getData=getData, generateFiles=generateFiles, justGetData=justGetData, fixedModel=fixedModel, statistic=statistic, performLikelihoodFit=performLikelihoodFit, maketsmap=maketsmap, makeSummaryMap=makeSummaryMap, makeModelMap=makeModelMap, cleanup=cleanup, cleanupAll=cleanupAll, skipDiffuseResponse=skipDiffuseResponse, nuke=nuke, removeWeakSources =removeWeakSources, fixIndex=fixIndex)
 
 
 	else:	
