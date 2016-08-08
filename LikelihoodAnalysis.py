@@ -88,7 +88,7 @@ def computeEnergyFlux(photonflux, index, emin=100, emax=10000):
 		pass
 
 	energyflux = photonflux*(1.+index)/(2+index)*(pow(emax,index+2)-pow(emin,index+2))/(pow(emax,index+1)-pow(emin,index+1))
-	print 'index= %s , <E>= %s' %(index,energyflux/photonflux)
+	# print 'index= %s , <E>= %s' %(index,energyflux/photonflux)
 
 	return energyflux#*MeV2erg
 
