@@ -822,9 +822,9 @@ def plotImage(image, wcs_astropy, filename=None, region=None, colorbarLabel=None
 
 	# Add a colorbar
 	if colorbarScientificNotation == True:
-		cbar = plot.colorbar(pad=0.01, aspect=25, shrink=0.84)
-	else:
 		cbar = plot.colorbar(pad=0.01, aspect=25, shrink=0.84, format='%.0e')
+	else:
+		cbar = plot.colorbar(pad=0.01, aspect=25, shrink=0.84)
 
 	# Add a label to the colorbar
 	if colorbarLabel != None:
