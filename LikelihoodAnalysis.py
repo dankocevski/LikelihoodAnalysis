@@ -2634,7 +2634,7 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 			output = open(upperLimitResultsFile, 'w')
 			output.write("%s Median Upper Limit Results:\n" % sourceName)
 
-			print "Median Upper Limits:"
+			print "\nMedian Upper Limits:"
 
 			# Convert float values to a list
 			if type(ROI) is not list:
