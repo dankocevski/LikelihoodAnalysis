@@ -2634,7 +2634,7 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 			output = open(upperLimitResultsFile, 'w')
 			output.write("%s Median Upper Limit Results:\n" % sourceName)
 
-			print "\nMedian Upper Limits:"
+			print "Median Upper Limits:"
 
 			# Convert float values to a list
 			if type(ROI) is not list:
@@ -2687,7 +2687,7 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 			print 'Creating upper limits map image...'
 			# plotImage(UpperLimitMap, wcs, filename=ulMapFigure, region=None, colorbarLabel=r'log Photon Flux UL (95%) (ph cm$^{-2}$ s$^{-1}$)', ROI=ROI, stretchColorValue=3e-7, maxValue=maxValue)
 			if useEnergyUL == True:
-				plotImage(UpperLimitMap, wcs, filename=ulMapFigure, region=None, colorbarLabel=r'log Energy Flux UL (95%) (ph cm$^{-2}$ s$^{-1}$)', ROI=ROI, maxValue=maxValue)
+				plotImage(UpperLimitMap, wcs, filename=ulMapFigure, region=None, colorbarLabel=r'log Energy Flux UL (95%) (energy cm$^{-2}$ s$^{-1}$)', ROI=ROI, maxValue=maxValue)
 			else:
 				plotImage(UpperLimitMap, wcs, filename=ulMapFigure, region=None, colorbarLabel=r'log Photon Flux UL (95%) (ph cm$^{-2}$ s$^{-1}$)', ROI=ROI, maxValue=maxValue)
 
