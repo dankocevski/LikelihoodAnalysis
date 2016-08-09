@@ -782,7 +782,7 @@ def ExtractCoordinates(xmlModel, Source):
 
 ##########################################################################################
 
-def plotImage(image, wcs_astropy, filename=None, region=None, colorbarLabel=None, ROI=None, stretchColorValue=None, maxValue=100):
+def plotImage(image, wcs_astropy, filename=None, region=None, colorbarLabel=None, colorbarScientificNotation=False, ROI=None, stretchColorValue=None, maxValue=100):
 
 	# Convert the astropy wcs objec to a pywcs wcs object
 	header_astropy = wcs_astropy.to_header()
@@ -821,7 +821,10 @@ def plotImage(image, wcs_astropy, filename=None, region=None, colorbarLabel=None
 	plot.imshow(image, interpolation='nearest')
 
 	# Add a colorbar
-	cbar = plot.colorbar(pad=0.01, aspect=25, shrink=0.84)
+	if colorbarScientificNotation == True:
+		cbar = plot.colorbar(pad=0.01, aspect=25, shrink=0.84)
+	else:
+		cbar = plot.colorbar(pad=0.01, aspect=25, shrink=0.84, format='%.0e')
 
 	# Add a label to the colorbar
 	if colorbarLabel != None:
@@ -2687,9 +2690,9 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 			print 'Creating upper limits map image...'
 			# plotImage(UpperLimitMap, wcs, filename=ulMapFigure, region=None, colorbarLabel=r'log Photon Flux UL (95%) (ph cm$^{-2}$ s$^{-1}$)', ROI=ROI, stretchColorValue=3e-7, maxValue=maxValue)
 			if useEnergyUL == True:
-				plotImage(UpperLimitMap, wcs, filename=ulMapFigure, region=None, colorbarLabel=r'log Energy Flux UL (95%) (energy cm$^{-2}$ s$^{-1}$)', ROI=ROI, maxValue=maxValue)
+				plotImage(UpperLimitMap, wcs, filename=ulMapFigure, region=None, colorbarLabel=r'log Energy Flux UL (95%) (energy cm$^{-2}$ s$^{-1}$)', colorbarScientificNotation=True, ROI=ROI, maxValue=maxValue)
 			else:
-				plotImage(UpperLimitMap, wcs, filename=ulMapFigure, region=None, colorbarLabel=r'log Photon Flux UL (95%) (ph cm$^{-2}$ s$^{-1}$)', ROI=ROI, maxValue=maxValue)
+				plotImage(UpperLimitMap, wcs, filename=ulMapFigure, region=None, colorbarLabel=r'log Photon Flux UL (95%) (ph cm$^{-2}$ s$^{-1}$)', colorbarScientificNotation=True, ROI=ROI, maxValue=maxValue)
 
 
 		# Pickle the results
