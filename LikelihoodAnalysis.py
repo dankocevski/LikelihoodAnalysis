@@ -2137,7 +2137,7 @@ def tsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=100
 
 ##########################################################################################
 
-def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=100, emax=1e5, action=None, tsMin=25, association='none', irfs='P8R2_SOURCE_V6', getData=True, generateFiles=True, performLikelihoodFit=True, nuke=True, fixedModel=True, statistic='UNBINNED', verbose=False, test=False, maxJobs=200, batch=True, interpolation='nearest', resubmit=True, plotMaps=True, pickleResults=False, region=None, removeWeakSources=True, ROI=None, maxValue=None, fixIndex=True):
+def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=100, emax=1e5, action=None, tsMin=25, association='none', irfs='P8R2_SOURCE_V6', getData=True, generateFiles=True, performLikelihoodFit=True, nuke=True, fixedModel=True, statistic='UNBINNED', verbose=False, test=False, maxJobs=200, batch=True, interpolation='nearest', resubmit=True, plotMaps=True, pickleResults=False, region=None, removeWeakSources=True, ROI=None, maxValue=None, fixIndex=True, useEnergyUL=False):
 
 	# Define the home directory
 	LikelihoodDirectory = '/nfs/slac/g/ki/ki08/kocevski/Likelihood'
@@ -2477,6 +2477,11 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 						LineContents = line.split()	
 						photonFluxUpperLimit = LineContents[4]
 
+					# Extract the photon flux upper limit
+					if 'Energy Flux Upper Limit (index=-2.1): ' in line:
+						LineContents = line.split()	
+						energyFluxUpperLimit = LineContents[5]
+
 			else:
 				
 				print 'file not found: %s' % logfile
@@ -2488,7 +2493,12 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 			# photonFluxUpperLimits.append(photonFluxUpperLimit)
 
 			LikelihoodResults[binNumber] = ts
-			UpperLimitResults[binNumber] = photonFluxUpperLimit
+
+			if useEnergyUL == True:
+				UpperLimitResults[binNumber] = energyFluxUpperLimit
+			else:
+				UpperLimitResults[binNumber] = photonFluxUpperLimit
+
 
 		print "\nDone."
 
@@ -2655,8 +2665,12 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 				upperlimits = upperlimits.astype(float)
 
 				# Print the results
-				print 'ROI < %s deg: %s photons cm-2 s-1' % (radius, numpy.median(upperlimits))
-				output.write('ROI < %s deg: %s photons cm-2 s-1\n' % (radius, numpy.median(upperlimits)) )
+				if useEnergyUL == True:
+					print 'ROI < %s deg: %s energy cm-2 s-1' % (radius, numpy.median(upperlimits))
+					output.write('ROI < %s deg: %s energy cm-2 s-1\n' % (radius, numpy.median(upperlimits)) )
+				else:
+					print 'ROI < %s deg: %s photons cm-2 s-1' % (radius, numpy.median(upperlimits))
+					output.write('ROI < %s deg: %s photons cm-2 s-1\n' % (radius, numpy.median(upperlimits)) )
 
 			# Close the file
 			output.close()
@@ -2672,7 +2686,11 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 			# Plot the upper limit map
 			print 'Creating upper limits map image...'
 			# plotImage(UpperLimitMap, wcs, filename=ulMapFigure, region=None, colorbarLabel=r'log Photon Flux UL (95%) (ph cm$^{-2}$ s$^{-1}$)', ROI=ROI, stretchColorValue=3e-7, maxValue=maxValue)
-			plotImage(UpperLimitMap, wcs, filename=ulMapFigure, region=None, colorbarLabel=r'log Photon Flux UL (95%) (ph cm$^{-2}$ s$^{-1}$)', ROI=ROI, maxValue=maxValue)
+			if useEnergyUL == True:
+				plotImage(UpperLimitMap, wcs, filename=ulMapFigure, region=None, colorbarLabel=r'log Energy Flux UL (95%) (ph cm$^{-2}$ s$^{-1}$)', ROI=ROI, maxValue=maxValue)
+			else:
+				plotImage(UpperLimitMap, wcs, filename=ulMapFigure, region=None, colorbarLabel=r'log Photon Flux UL (95%) (ph cm$^{-2}$ s$^{-1}$)', ROI=ROI, maxValue=maxValue)
+
 
 		# Pickle the results
 		if pickleResults == True:
