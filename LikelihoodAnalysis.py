@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #Testing
-print "\nLikelihood Analysis Tool v1.0"
+print "\nLikelihood Analysis Tool v1.1"
 print "Support Contact: Daniel Kocevski (daniel.kocevski@nasa.gov)\n"
 print "Importing modules..."
 import os
@@ -50,6 +50,32 @@ from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 print "Done."
 
 
+# Default Global Variables
+
+# Define the default home directory
+LikelihoodDirectory = '/nfs/slac/g/ki/ki08/kocevski/Likelihood'
+
+# Define the default results directory
+ResultsDirectory = "%s/Results" % (LikelihoodDirectory)
+
+
+##########################################################################################
+
+def getkwarg(argument, default):
+
+	if argument in kwargs:
+
+		if type(default) == bool:
+			argumentValue = BOOL(kwargs[argument])
+		else:
+			argumentValue = kwargs[argument]
+	
+	else:
+		argumentValue = default
+
+	return argumentValue
+
+
 ##########################################################################################
 def jd_from_MET( met ):
 
@@ -90,7 +116,11 @@ def computeEnergyFlux(photonflux, index, emin=100, emax=10000):
 	energyflux = photonflux*(1.+index)/(2+index)*(pow(emax,index+2)-pow(emin,index+2))/(pow(emax,index+1)-pow(emin,index+1))
 	# print 'index= %s , <E>= %s' %(index,energyflux/photonflux)
 
-	return energyflux#*MeV2erg
+	# Return the energy flux in ergs
+#	return energyflux * MeV2erg		
+
+	# Return the energy flux in MeV
+	return energyflux
 
 ##########################################################################################
 
@@ -103,18 +133,22 @@ def BOOL(string):
 
 ##########################################################################################
 
-class TimeoutError(Exception):
+class timeoutError(Exception):
 	pass
 
 class timeout:
+
 	def __init__(self, seconds=1, error_message='Timeout'):
 		self.seconds = seconds
 		self.error_message = error_message
+
 	def handle_timeout(self, signum, frame):
-		raise TimeoutError(self.error_message)
+		raise timeoutError(self.error_message)
+
 	def __enter__(self):
 		signal.signal(signal.SIGALRM, self.handle_timeout)
 		signal.alarm(self.seconds)
+
 	def __exit__(self, type, value, traceback):
 		signal.alarm(0)
 
@@ -122,7 +156,7 @@ class timeout:
 
 ##########################################################################################
 
-def AngularSeperation(ra1,dec1,ra2,dec2):
+def angularSeperation(ra1,dec1,ra2,dec2):
 
 	d1 = radians(90.-dec2)
 	d2 = radians(90.-dec1)
@@ -130,7 +164,7 @@ def AngularSeperation(ra1,dec1,ra2,dec2):
 
 	sep = cos(d1) * cos(d2)
 
-	sep += sin(d1) * sin(d2)*cos(d3)
+	sep += sin(d1) * sin(d2) * cos(d3)
 
 	sep = degrees( acos(sep))
 	return sep # in degrees
@@ -138,7 +172,7 @@ def AngularSeperation(ra1,dec1,ra2,dec2):
 
 ##########################################################################################
 
-def GetCatalogFluxValues(like):
+def getCatalogFluxValues(like):
 
 	print 'Extracting catalog flux values...'
 	Sources = like.sourceNames()
@@ -159,7 +193,7 @@ def GetCatalogFluxValues(like):
 
 ##########################################################################################
 
-def FreezeAllSources(like):
+def freezeAllSources(like):
 
 	print 'Freezing all sources...'
 
@@ -180,7 +214,7 @@ def FreezeAllSources(like):
 
 ##########################################################################################
 
-def FreeSourceParameters(like, srcname, TS=1, TSlim=0):
+def freeSourceParameters(like, srcname, TS=1, TSlim=0):
 
 	"""Free source parameters depending on cataloged TS """
 
@@ -191,7 +225,7 @@ def FreeSourceParameters(like, srcname, TS=1, TSlim=0):
 
 
 	# --- now THAW the normalization, free the index only if the TS>TSlim
-	spec_type = GetSpectralType(like,srcname)
+	spec_type = getSpectralType(like,srcname)
 
 	if(spec_type=="PowerLaw"):
 		norm_idx = like.par_index(srcname,'Prefactor')
@@ -285,7 +319,7 @@ def FreeSourceParameters(like, srcname, TS=1, TSlim=0):
 
 ##########################################################################################
 
-def GetSpectralType(like,srcname):
+def getSpectralType(like,srcname):
 
 	string = str(like[srcname])
 
@@ -297,7 +331,7 @@ def GetSpectralType(like,srcname):
 	if(spec_type!="PowerLaw2" and spec_type!="PowerLaw" and
 		spec_type!="LogParabola" and  spec_type!="PLSuperExpCutoff"):
 
-		print " ERROR >>GetSpectralType:: spectrum `%s' not known for src %s" % (spec_type,srcname)
+		print " ERROR >>getSpectralType:: spectrum `%s' not known for src %s" % (spec_type,srcname)
 		sys.exit()
 
 	return spec_type
@@ -369,7 +403,7 @@ def writeXML(self, ra, dec, galpropModel, isotropicModel, outfile='SourceModel.x
 
 ##########################################################################################
 
-def AddCandidateSource(ra, dec, xmlModel, fixIndex=True):
+def addCandidateSource(ra, dec, xmlModel, fixIndex=True):
 
 	print "\nAdding a candidate source at RA=%s Dec=%s to the xml model..." % (ra, dec) 
 
@@ -443,7 +477,7 @@ def AddCandidateSource(ra, dec, xmlModel, fixIndex=True):
 
 ##########################################################################################
 
-def RemoveCandidateSource(xmlModel, xmlModelModified, candidateSource='CandidateSource', RemoveSource=True, FixSources=False):
+def removeCandidateSource(xmlModel, xmlModelModified, candidateSource='CandidateSource', RemoveSource=True, FixSources=False):
 
 	# Open the files
 	infile = open(xmlModel,'r')
@@ -508,7 +542,7 @@ def RemoveCandidateSource(xmlModel, xmlModelModified, candidateSource='Candidate
 
 ##########################################################################################
 
-def ModifySourceModel(xmlModel, xmlModelModified, candidateSource='CandidateSource', RemoveSource=True, FixSources=True):
+def modifySourceModel(xmlModel, xmlModelModified, candidateSource='CandidateSource', RemoveSource=True, FixSources=True):
 
 	# Open the files
 	infile = open(xmlModel,'r')
@@ -572,7 +606,7 @@ def ModifySourceModel(xmlModel, xmlModelModified, candidateSource='CandidateSour
 
 ##########################################################################################
 
-def ExtractSources(xmlModel, sourceNames):
+def extractSources(xmlModel, sourceNames):
 
 	# Open the files
 	infile = open(xmlModel,'r')
@@ -623,7 +657,7 @@ def ExtractSources(xmlModel, sourceNames):
 
 ##########################################################################################
 
-def SetPfilesDirectory(pfile_dir):
+def setPfilesDirectory(pfile_dir):
 	"""each thread/job which uses FTOOLS must have its own
 	PFILES dir"""
 	
@@ -718,7 +752,7 @@ def forceAspect(ax,aspect=1):
 
 ##########################################################################################
 
-def RemoveSources(DuplicateSources, Names_SourcesUnique, RA_SourcesUnique, DEC_SourcesUnique):
+def removeSources(DuplicateSources, Names_SourcesUnique, RA_SourcesUnique, DEC_SourcesUnique):
 
 	for Source in DuplicateSources:
 		i = numpy.where(Names_SourcesUnique == Source)
@@ -731,7 +765,7 @@ def RemoveSources(DuplicateSources, Names_SourcesUnique, RA_SourcesUnique, DEC_S
 
 ##########################################################################################
 
-def ExtractCoordinates(xmlModel, Source):
+def extractCoordinates(xmlModel, Source):
 
 	# Define some default values
 	sourceFound = False
@@ -782,7 +816,7 @@ def ExtractCoordinates(xmlModel, Source):
 
 ##########################################################################################
 
-def plotImage(image, wcs_astropy, filename=None, region=None, colorbarLabel=None, colorbarScientificNotation=False, ROI=None, stretchColorValue=None, maxValue=100):
+def plotImage(image, wcs_astropy, filename=None, region=None, colorbarLabel=None, colorbarScientificNotation=False, ROI=None, stretchColorValue=None, maxValue=100, eps=False):
 
 	# Convert the astropy wcs objec to a pywcs wcs object
 	header_astropy = wcs_astropy.to_header()
@@ -818,11 +852,12 @@ def plotImage(image, wcs_astropy, filename=None, region=None, colorbarLabel=None
 		image[i] = maxValue
 
 	# Plot the data
-	plot.imshow(image, interpolation='nearest')
+	# plot.imshow(image, interpolation='nearest')
+	plot.imshow(image, interpolation='none')
 
 	# Add a colorbar
 	if colorbarScientificNotation == True:
-		cbar = plot.colorbar(pad=0.01, aspect=25, shrink=0.84, format='%.0e')
+		cbar = plot.colorbar(pad=0.01, aspect=25, shrink=0.84, format='%.1e')
 	else:
 		cbar = plot.colorbar(pad=0.01, aspect=25, shrink=0.84)
 
@@ -865,14 +900,16 @@ def plotImage(image, wcs_astropy, filename=None, region=None, colorbarLabel=None
 				if ";" in line:
 						coord=line.split("#")[0].split(";")[0]
 						ra, dec=line.split("#")[0].split(";")[1].replace("point(", "").replace(")", "").split(",")
-						name=line.split("{")[-1].replace(" ", "").replace("}", "")
+						# name=line.split("{")[-1].replace(" ", "").replace("}", "")
+						name=line.split("{")[-1].replace("}", "")
 						if coord!="J2000":
 							print "pyapp.fitstopng: region support is experimental, only J2000 ra-dec is implemented."
 							fig.save(outfile)
 							return
 				else:
 					ra, dec=line.split("#")[0].replace("point(", "").replace(")", "").split(",")
-					name=line.split("{")[-1].replace(" ", "").replace("}", "")
+					# name=line.split("{")[-1].replace(" ", "").replace("}", "")
+					name=line.split("{")[-1].replace("}", "")					
 					xmin, xmax, ymin, ymax=0., 360., -90., 90.      #temporary hack for different format of region files
 
 				# Make sure the coordinates are floats
@@ -903,7 +940,12 @@ def plotImage(image, wcs_astropy, filename=None, region=None, colorbarLabel=None
 	if filename == None:
 		for key, value in list(locals().iteritems()):
 			if value is image:
-				filename = key + '.png'
+
+				if eps == False:
+					filename = key + '.png'
+				else:
+					filename = key + '.eps'
+
 
 	# Save the figure
 	print '\nSaving image to: %s\n' % filename
@@ -912,7 +954,7 @@ def plotImage(image, wcs_astropy, filename=None, region=None, colorbarLabel=None
 
 ##########################################################################################
 
-def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25, irfs='P8R2_SOURCE_V6', ROI=12, zmax=105, association='none', dra=7, ddec=7, tsmapBinSize=0.15, getData=True, generateFiles=True, performLikelihoodFit=True, makeSourceMap=False, maketsmap=False, makeSummaryMap=False, makeModelMap=False, cleanup=True, cleanupAll=False, nuke=False, justGetData=False, fixedModel=True, statistic='UNBINNED', optimizer='MINUIT', skipDiffuseResponse=False, performRefinedFit=False, removeWeakSources=False, plotFit=True, makeModel=True, fixIndex=True):
+def sourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25, irfs='P8R2_SOURCE_V6', ROI=12, zmax=105, association='none', dra=7, ddec=7, tsmapBinSize=0.15, getData=True, getFT1=True, getFT2=True, generateFiles=True, performLikelihoodFit=True, makeSourceMap=False, maketsmap=False, makeSummaryMap=False, makeModelMap=False, cleanup=True, cleanupAll=False, nuke=False, justGetData=False, fixedModel=True, statistic='UNBINNED', optimizer='MINUIT', skipDiffuseResponse=False, performRefinedFit=False, removeWeakSources=False, plotFit=True, makeModel=True, fixIndex=True, makeAllSkyExposureMap=False, xref_allSky=None, yref_allSky=None):
 
 	# Import additional libraries
 	import traceback
@@ -1035,7 +1077,7 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 		os.system(cmd)			
 
 	# Set the new pfiles directory
-	SetPfilesDirectory(PFILESDirectory)
+	setPfilesDirectory(PFILESDirectory)
 
 	# Import the necessary gtapps	
 	gtselect = GtApp('gtselect')
@@ -1128,7 +1170,7 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 	xmlModel_WithoutCandidateSource = '%s/Model_%s_WithoutCandidateSource.xml' % (OutputDirectory, sourceName)
 	xmlModelFixed_WithoutCandidateSource = '%s/ModelFixed_%s_WithoutCandidateSource.xml' % (OutputDirectory, sourceName)
 	xmlModelFitMaxTS = "%s/Model_%s_MaxTS.xml" % (OutputDirectory, sourceName)
-	likelihoodResults = "%s/likelihoodResults_%s.txt" % (OutputDirectory, sourceName)
+	likelihoodResults = "%s/likelihoodResults_%s_%s_%s.txt" %  (OutputDirectory, tmin, tmax, sourceName)
 	recursiveLikelihoodResults = "%s/recursiveLikelihoodFit_%s_%s_%s.txt" % (OutputDirectory, tmin, tmax, sourceName)
 	summaryMapTS = "%s/summaryMapTS_%s_%s_%s.png" % (OutputDirectory, tmin, tmax, sourceName)
 	summaryMapFluxRatio = "%s/summaryMapFluxRatio_%s_%s_%s.png" % (OutputDirectory, tmin, tmax, sourceName)
@@ -1137,7 +1179,7 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 	likelihoodFitPlot = '%s/likelihoodFit_%s_%s_%s.png' % (OutputDirectory, tmin, tmax, sourceName)
 
 	# Get the data from the astroserver at SLAC
-	if getData == True:
+	if getFT1 == True and getData == True:
 
 		# Setup the FT1 parameters
 		FT1_options = {'event-sample' : dataclass_FT1,
@@ -1154,6 +1196,7 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 		print '\nGetting the FT1 file:' 
 		astro_query(FT1_options, store='store', verbose=True)
 
+	if getFT2 == True and getData == True:
 
 		# Setup the FT2 parameters
 		FT2_options = {'event-sample' : dataclass_FT2,
@@ -1164,6 +1207,7 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 		# Query the astroserver and get the FT2 file
 		print '\nGetting the FT2 file:' 			   
 		astro_query(FT2_options, store='storeft2', verbose=True)
+
 
 	# Generating the neccessary working files
 	if generateFiles == True:
@@ -1239,7 +1283,6 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 		# 			#nlong=88, nlat=88, nenergies=10, coordsys='CEL')
 
 
-
 	# Create the source model
 	if makeModel == True:
 
@@ -1256,7 +1299,7 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 
 			# Add a condidate point source at the inital FAVA position (regardless of whether there is an association)
 			sourceOfInterest = 'CandidateSource'
-			AddCandidateSource(float(ra), float(dec), xmlModel, fixIndex=fixIndex)
+			addCandidateSource(float(ra), float(dec), xmlModel, fixIndex=fixIndex)
 
 		else:
 
@@ -1264,7 +1307,7 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 			sourceOfInterest = association
 
 			# Check to see if our associated source is in the xml model.  If not, add a candidate point source.
-			SourceRA, SourceDec = ExtractCoordinates(xmlModel, sourceOfInterest)
+			SourceRA, SourceDec = extractCoordinates(xmlModel, sourceOfInterest)
 
 			# Add a point source to the xml model if there is no association
 			if SourceRA == None:
@@ -1283,7 +1326,7 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 					algorithm='CMAP',
 					nxpix=160, nypix=160, binsz=binsize, coordsys='CEL',
 					#nxpix=200, nypix=200, binsz=0.2, coordsys='CEL',
-					#nxpix=300, nypix=300, binsz=0.2, coordsys='CEL',					
+					#nxpix=300, nypix=300, binsz=0.2,xcoordsys='CEL',					
 					xref=ra, yref=dec, axisrot=0, proj='AIT')
 
 
@@ -1321,24 +1364,23 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 
 
 		# Generate an all sky exposure map.  This is for binned likelihood only, but is also used in the srcmap generation
-		if makeModelMap == True or makeSourceMap == True:
+		if makeModelMap == True or makeSourceMap == True or makeAllSkyExposureMap == True:
+
+			if xref_allSky == None:
+				xref_allSky = ra
+			if yref_allSky == None:
+				yref_allSky = dec
+
 			print '\nGenerating the all sky binned exposure map:'				
 			gtexpcube2.run(infile=ltcube,
 						cmap=ccube,
 						outfile=bexpmap_allSky,
 						irfs=irfs,
 						nxpix=int(360/binsize), nypix=int(180/binsize), binsz=binsize, coordsys='CEL',
-						xref=ra, yref=dec, axisrot=0, proj='AIT',
+						xref=xref_allSky, yref=yref_allSky, axisrot=0, proj='AIT',
 						emin=emin, emax=emax, nenergies=30)
 
 
-	# Quite here if the user only wants the data and associated products
-	if justGetData == True:
-		print 'Done.\n'
-		return
-
-	# Continue generating the neccessary working files
-	if generateFiles == True:
 
 		if skipDiffuseResponse == False:
 			# Compute the diffuse response
@@ -1351,10 +1393,8 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 						clobber='yes',
 						convert='yes')
 		else:
+
 			print '\nSkipping diffuse response'
-
-
-
 
 
 	# Run an likelihood fit at the initial FAVA position
@@ -1540,7 +1580,7 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 				print "\nTS: %s" % like.Ts(sourceOfInterest)
 				print "Ra Dec: %.3f %.3f" % (float(ra), float(dec))
 				print "Photon Flux Upper Limit: %s ph cm-2 s-1" % photonFluxUpperLimit95
-				print "Energy Flux Upper Limit (index=-2.1): %s ph cm-2 s-1" % energyFluxUpperLimit95
+				print "Energy Flux Upper Limit (index=-2.1): %s MeV cm-2 s-1" % energyFluxUpperLimit95
 
 				# Save the likelihood results
 				print '\nSaving results to:\n%s' % likelihoodResults
@@ -1563,8 +1603,7 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 			print traceback.format_exc()
 
 
-
-	if plotFit == True:
+	if performLikelihoodFit == True and plotFit == True:
 
 		# Make sure matplotlib has been successfully imported
 		import matplotlib.pylab as plot
@@ -1609,7 +1648,6 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 		# Save the plot
 		print '\nSaving likelihood fit plot to:\n%s' % likelihoodFitPlot
 		plot.savefig(likelihoodFitPlot, dpi=72)
-
 
 
 	if maketsmap == True:
@@ -1724,26 +1762,10 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 
 
 	# Generate a source map of the best fit likelihood model
-	if makeSourceMap == True:
-
-		print '\nGenerating a source map:'
-		try:
-			gtsrcmaps.run(scfile=ft2file,
-							cmap=ccube,
-							expcube=ltcube,
-							srcmdl=xmlModel,
-							outfile=srcmap,
-							bexpmap=bexpmap_allSky,
-							irfs=irfs,
-							emapbnds='no')
-		except Exception, message:
-			print message
-			print traceback.format_exc()
-
-	if makeModelMap == True:
+	if makeModelMap == True or makeSourceMap == True:
 
 		# Generate a source map of the best fit likelihood model
-		print '\n\nGenerating a source map:'
+		print '\nGenerating a source map:'
 		try:
 			gtsrcmaps.run(scfile=ft2file,
 							cmap=ccube,
@@ -1757,6 +1779,8 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 			print message
 			print traceback.format_exc()
 
+
+	if makeModelMap == True:
 
 		# Generate model map of the best fit likelihood model	
 		print '\nGenerating a model map:'	
@@ -1770,7 +1794,6 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 		except Exception, message:
 			print message
 			print traceback.format_exc()
-		
 
 		# Plot the model map without catalog annotations
 		try:
@@ -1988,7 +2011,7 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 			DuplicateSources3 = ['1150+497','TON 599','PKS B1222+216','4C +21.35','J123939+044409','PSRB1259-63','1510-089','FERMI J1532-1321','PKS B 1622-297','4C +38.41']
 			DuplicateSources4 = ['1633+382','J1717-5156','1730-130','3EG J2033+4118']
 			DuplicateSources = DuplicateSources1 + DuplicateSources2 + DuplicateSources3 + DuplicateSources4
-			Names_SourcesUnique, RA_SourcesUnique, DEC_SourcesUnique = RemoveSources(DuplicateSources, Names_SourcesUnique, RA_SourcesUnique, DEC_SourcesUnique)
+			Names_SourcesUnique, RA_SourcesUnique, DEC_SourcesUnique = removeSources(DuplicateSources, Names_SourcesUnique, RA_SourcesUnique, DEC_SourcesUnique)
 
 			# Add the sources
 			sort = [numpy.argsort(RA_SourcesUnique)]
@@ -2015,9 +2038,9 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 				SunDec = SkyDir.dec()
 
 				if maketsmap == True and MaxTS >= 25:
-					SunSeperation = AngularSeperation( SunRa, SunDec, float(MaxRa), float(MaxDec))
+					SunSeperation = angularSeperation( SunRa, SunDec, float(MaxRa), float(MaxDec))
 				else:
-					SunSeperation = AngularSeperation( SunRa, SunDec, float(ra_sourceOfInterest), float(dec_sourceOfInterest))
+					SunSeperation = angularSeperation( SunRa, SunDec, float(ra_sourceOfInterest), float(dec_sourceOfInterest))
 
 				if SunSeperation <= 15:
 					x_Sun, y_Sun = m(SunRa, SunDec)
@@ -2135,12 +2158,12 @@ def SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 
 def tsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=100, emax=1e5, tsMin=25, irfs='P8R2_SOURCE_V6', association='none', getData=True, generateFiles=True, performLikelihoodFit=False, makeSourceMap=False, cleanup=True, justGetData=False, statistic='UNBINNED', skipDiffuseResponse=False):
 
-	SourceAnalysis(sourceName, ra, dec, tmin, tmax, dra=dra, ddec=ddec, binsize=binsize, emin=emin, emax=emax, tsMin=tsMin, irfs=irfs, association=association, getData=getData, generateFiles=generateFiles, performLikelihoodFit=False, makeSourceMap=False, maketsmap=True, makeSummaryMap=False, makeModelMap=False, cleanup=True, cleanupAll=False, nuke=False, justGetData=False, fixedModel=True, statistic='UNBINNED', skipDiffuseResponse=False)
+	sourceAnalysis(sourceName, ra, dec, tmin, tmax, dra=dra, ddec=ddec, binsize=binsize, emin=emin, emax=emax, tsMin=tsMin, irfs=irfs, association=association, getData=getData, generateFiles=generateFiles, performLikelihoodFit=False, makeSourceMap=False, maketsmap=True, makeSummaryMap=False, makeModelMap=False, cleanup=True, cleanupAll=False, nuke=False, justGetData=False, fixedModel=True, statistic='UNBINNED', skipDiffuseResponse=False)
 
 
 ##########################################################################################
 
-def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=100, emax=1e5, action=None, tsMin=25, association='none', irfs='P8R2_SOURCE_V6', getData=True, generateFiles=True, performLikelihoodFit=True, nuke=True, fixedModel=True, statistic='UNBINNED', verbose=False, test=False, maxJobs=200, batch=True, interpolation='nearest', resubmit=True, plotMaps=True, pickleResults=False, region=None, removeWeakSources=True, ROI=None, maxValue=None, fixIndex=True, useEnergyUL=False):
+def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=100, emax=1e5, action='both', tsMin=25, association='none', irfs='P8R2_SOURCE_V6', getData=True, generateFiles=True, performLikelihoodFit=True, nuke=True, fixedModel=True, statistic='UNBINNED', verbose=False, test=False, maxJobs=200, batch=True, interpolation='nearest', resubmit=True, plotMaps=True, pickleResults=False, region=None, removeWeakSources=False, ROI=None, maxValue=None, fixIndex=True, useEnergyUL=False, fileExtension='png'):
 
 	# Define the home directory
 	LikelihoodDirectory = '/nfs/slac/g/ki/ki08/kocevski/Likelihood'
@@ -2164,15 +2187,19 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 	LogDirectory = OutputDirectory + '/dtsmap'
 	JobsDirectory = OutputDirectory + '/dtsmap'
 
+	# Define the default region file
+	# if region == None:
+	# 	region = LikelihoodDirectory + '/Catalogs/gll_psc_v16.reg'
+
 	# Generate the output file names
-	tsMapFigure = OutputDirectory + '/dTSmap_%s.png' % sourceName
-	ulMapFigure = OutputDirectory + '/dULmap_%s.png' % sourceName
+	tsMapFigure = OutputDirectory + '/dTSmap_%s.%s' % (sourceName, fileExtension)
+	ulMapFigure = OutputDirectory + '/dULmap_%s.%s' % (sourceName, fileExtension)
 	tsMapPickle = OutputDirectory + '/dTSmap_%s.pickle' % sourceName
 	ulMapPickle = OutputDirectory + '/dULmap_%s.pickle' % sourceName
 	upperLimitResultsFile = OutputDirectory + '/dULResults_%s.txt' % sourceName
 
 	# Create the output directory if necessary
-	if 'submit' in action:
+	if 'submit' in action or 'both' in action:
 
 		print "\nCreating custom output directory:\n%s" % OutputDirectory        
 		cmd = "mkdir -p " + OutputDirectory
@@ -2369,31 +2396,30 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 
 
 		print "\nTotal number of jobs submitted: %s" % binNumber
-		print "All jobs submitted."
+		print "All jobs submitted.\n"
 
 
-		# # Check to see if the number of jobs in the queue is greater than the max.  If so, wait for the jobs to leave the queue before submitting more.
-		# while JobsInQueue > 0:
+		# Check to see if the number of jobs in the queue is greater than the max.  If so, wait for the jobs to leave the queue before submitting more.
+		if 'both' in action:
 
-		# 	print "\nTotal number of remaining jobs: %s" % remainingJobs
+			while JobsInQueue > 0:
 
-		# 	# Wait 60 seconds before polling the job statuses
-		# 	if test == False:
-		# 		time.sleep(60)
+				print "\nTotal number of remaining jobs: %s" % JobsInQueue
 
-		# 	# Get the number of jobs actively in the queue
-		# 	command = "bjobs -g %s | wc" % JobsDirectory	
-		# 	process = subprocess.Popen(command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
-		# 	lines = process.stdout.readlines()
-			
-		# 	# Extract the number of jobs that are running
-		# 	if 'No' in lines[0].split()[0]:
-		# 		JobsInQueue = 0
-		# 	else:
-		# 		JobsInQueue = int(lines[0].split()[0])
+				# Wait 60 seconds before polling the job statuses
+				if test == False:
+					time.sleep(60)
 
-		# if 'submit' in action:
-		# 	return 
+				# Get the number of jobs actively in the queue
+				command = "bjobs -g %s | wc" % JobsDirectory	
+				process = subprocess.Popen(command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
+				lines = process.stdout.readlines()
+				
+				# Extract the number of jobs that are running
+				if 'No' in lines[0].split()[0]:
+					JobsInQueue = 0
+				else:
+					JobsInQueue = int(lines[0].split()[0])
 
 
 	if 'collect' in action or 'both' in action:
@@ -2547,7 +2573,7 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 
 				if badBinFound == True:
 
-					print "Bin not found: %s" % binNumber
+					print "\nBin not found: %s" % binNumber
 					print "%s/dtsmap_bin%s.log" % (LogDirectory, binNumber)
 					TSMap[x][y] = numpy.nan
 					UpperLimitMap[x][y] = numpy.nan		
@@ -2603,11 +2629,9 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 
 		# Finding the maximum TS
 		MaxTS = numpy.nanmax(TSMap)
-		MaxBin = numpy.nanargmax(TSMap)
-
-
+		
 		# Check to see if a maximum couldn't be found.
-		if numpy.isnan(MaxBin) == True:
+		if numpy.isnan(MaxTS) == True:
 			print "\nAnalysis Complete."
 			print "Maximum TS: %s" % 'None'
 			print "Coordinates: RA = %s, Dec = %s" % ('NA', 'NA')
@@ -2615,6 +2639,8 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 
 		else:
 
+			# Find the location of the maximum TS
+			MaxBin = numpy.nanargmax(TSMap)
 			MaxRa = RaDecPairs[MaxBin][0]
 			MaxDec = RaDecPairs[MaxBin][1]
 
@@ -2629,7 +2655,6 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 		UpperLimitMap = numpy.flipud(UpperLimitMap)
 		# UpperLimitMap = numpy.fliplr(UpperLimitMap)
 
-
 		# Calculate the media upper limit within the ROI
 		if ROI != None:
 
@@ -2637,7 +2662,7 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 			output = open(upperLimitResultsFile, 'w')
 			output.write("%s Median Upper Limit Results:\n" % sourceName)
 
-			print "Median Upper Limits:"
+			print "\nMedian Upper Limits:"
 
 			# Convert float values to a list
 			if type(ROI) is not list:
@@ -2657,7 +2682,7 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 					dec_bin = RaDecPairs[binNumber][1]
 
 					# Get the angular seperation
-					distance = AngularSeperation(ra, dec, ra_bin, dec_bin)
+					distance = angularSeperation(ra, dec, ra_bin, dec_bin)
 
 					# Record the upper limit if it's within the ROI
 					if distance <= radius:
@@ -2669,8 +2694,8 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 
 				# Print the results
 				if useEnergyUL == True:
-					print 'ROI < %s deg: %s energy cm-2 s-1' % (radius, numpy.median(upperlimits))
-					output.write('ROI < %s deg: %s energy cm-2 s-1\n' % (radius, numpy.median(upperlimits)) )
+					print 'ROI < %s deg: %s MeV cm-2 s-1' % (radius, numpy.median(upperlimits))
+					output.write('ROI < %s deg: %s MeV cm-2 s-1\n' % (radius, numpy.median(upperlimits)) )
 				else:
 					print 'ROI < %s deg: %s photons cm-2 s-1' % (radius, numpy.median(upperlimits))
 					output.write('ROI < %s deg: %s photons cm-2 s-1\n' % (radius, numpy.median(upperlimits)) )
@@ -2690,7 +2715,7 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 			print 'Creating upper limits map image...'
 			# plotImage(UpperLimitMap, wcs, filename=ulMapFigure, region=None, colorbarLabel=r'log Photon Flux UL (95%) (ph cm$^{-2}$ s$^{-1}$)', ROI=ROI, stretchColorValue=3e-7, maxValue=maxValue)
 			if useEnergyUL == True:
-				plotImage(UpperLimitMap, wcs, filename=ulMapFigure, region=None, colorbarLabel=r'log Energy Flux UL (95%) (energy cm$^{-2}$ s$^{-1}$)', colorbarScientificNotation=True, ROI=ROI, maxValue=maxValue)
+				plotImage(UpperLimitMap, wcs, filename=ulMapFigure, region=None, colorbarLabel=r'log Energy Flux UL (95%) (MeV cm$^{-2}$ s$^{-1}$)', colorbarScientificNotation=True, ROI=ROI, maxValue=maxValue)
 			else:
 				plotImage(UpperLimitMap, wcs, filename=ulMapFigure, region=None, colorbarLabel=r'log Photon Flux UL (95%) (ph cm$^{-2}$ s$^{-1}$)', colorbarScientificNotation=True, ROI=ROI, maxValue=maxValue)
 
@@ -2709,7 +2734,345 @@ def dtsmap(sourceName, ra, dec, tmin, tmax, dra=7, ddec=7, binsize=0.15, emin=10
 
 ##########################################################################################
 
-def Lightcurve(sourceName, ra, dec, tmin, tmax, dt, emin=100, emax=1e5, tsMin=25, irfs='P8R2_SOURCE_V6', association='none', action='both', getData=True, generateFiles=True, nuke=True, fixedModel=True, statistic='UNBINNED', verbose=True, test=False, maxJobs=200, batch=True, resubmit=True, plotLC=True, pickleResults=False, removeWeakSources=True, logCenter=True, annotations=None, xlog=False, ylog=True, fixIndex=True):
+def dtsmap_ligo(sourceName, RAs, Decs, tmin, tmax, emin=100, emax=1e5, action=None, tsMin=25, association='none', irfs='P8R2_SOURCE_V6', getData=True, generateFiles=True, performLikelihoodFit=True, nuke=True, fixedModel=True, statistic='UNBINNED', verbose=False, test=False, maxJobs=200, batch=True, interpolation='nearest', resubmit=True, plotMaps=True, pickleResults=False, region=None, removeWeakSources=False, ROI=None, maxValue=None, fixIndex=True, useEnergyUL=False, useAlternativeTS=False):
+
+	# Define the home directory
+	LikelihoodDirectory = '/nfs/slac/g/ki/ki08/kocevski/Likelihood'
+
+	# Define the script directory
+	ScriptDirectory = LikelihoodDirectory + '/Scripts'
+
+	# Define the results directory
+	ResultsDirectory = "%s/Results" % (LikelihoodDirectory)
+
+	# Check if the user has write access to this location.  If not, create a subdirectory in the currnet working directory
+	if os.access(ResultsDirectory, os.W_OK) == False:
+		# Set the output directory to the working directory
+		OutputDirectory = os.getcwd() + '/%s' % sourceName
+	else:
+		# Set the output directory within the likelihood directory 
+		OutputDirectory = "%s/%s" % (ResultsDirectory, sourceName)
+
+
+	# Define the log directory
+	LogDirectory = OutputDirectory + '/dtsmap'
+	JobsDirectory = OutputDirectory + '/dtsmap'
+
+	# Define the default region file
+	# if region == None:
+	# 	region = LikelihoodDirectory + '/Catalogs/gll_psc_v16.reg'
+
+	# Generate the output file names
+	LikelihoodResultsPickle = OutputDirectory + '/dtsmapResults_%s_%s_%s.pickle' % (sourceName, tmin, tmax)
+	UpperLimitResultsPickle = OutputDirectory + '/ulmapResults_%s_%s_%s.pickle' % (sourceName, tmin, tmax)
+
+	# Create the output directory if necessary
+	if 'submit' in action:
+
+		print "\nCreating custom output directory:\n%s" % OutputDirectory        
+		cmd = "mkdir -p " + OutputDirectory
+		os.system(cmd)
+
+		# Create the output directory
+		print "\nCreating log/job directory:\n%s" % LogDirectory        
+		cmd = "mkdir -p " + LogDirectory
+		os.system(cmd)
+
+	# Calculate the pixel scale
+	xsize = len(RAs)
+	ysize = len(Decs)
+
+	# Loop through all combinations of Ra and Dec and submit a job for each one
+	RaDecPairs = {}
+	binNumber = 0
+
+	# Loop through each x, y pair
+	for raStep, decStep in zip(RAs, Decs):
+
+		# Record the coordinate pair for the bin number
+		RaDecPairs[binNumber] = [raStep, decStep]
+
+		# Increment the bin number
+		binNumber = binNumber + 1
+
+
+	# Submit the jobs
+	if 'submit' in action or 'both' in action:
+
+		# Print the total number of jobs
+		print "\nSubmitting a total of %s Jobs\n" % (xsize)
+
+		# Keep track of the jobs submitted. This allows the user to specify how many jobs should be running at any given time.
+		JobsInQueue = 0
+
+		# Get the bin numbers
+		binNumbers = RaDecPairs.keys()
+
+		if test == True:
+			maxJobs = 1e6;
+
+		for binNumber in binNumbers:
+
+			# Get the ra and dec step
+			raStep = RaDecPairs[binNumber][0]
+			decStep = RaDecPairs[binNumber][1]
+
+			# Check to see if the number of jobs in the queue is greater than the max.  If so, wait for the jobs to leave the queue before submitting more.
+			while JobsInQueue >= int(maxJobs):
+
+				print "\nMaximum number of submitted jobs (%s) reached.  Waiting..." % maxJobs
+				print "Total number of remaining jobs to submit: %s" % remainingJobs
+
+				# Wait 60 seconds before polling the job statuses
+				if test == False:
+					time.sleep(60)
+
+					# Get the number of jobs actively in the queue
+					command = "bjobs -g %s | wc" % JobsDirectory	
+					process = subprocess.Popen(command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
+					lines = process.stdout.readlines()
+					
+					# Extract the number of jobs that are running
+					if 'No' in lines[0].split()[0]:
+						JobsInQueue = 0
+					else:
+						JobsInQueue = int(lines[0].split()[0])
+					
+			# Setup the job
+			logfile = LogDirectory + "/dtsmap_bin%s.log" % binNumber
+
+			# Make the job name
+			jobName = "dtsmap_b%s" % binNumber				
+
+			# Generate a unique source name
+			uniqueSourceName = '%s_b%s' % (sourceName, binNumber)
+
+			# Construct the command		
+			command = """LikelihoodAnalysis.py %s %s %s %s %s irfs=%s fixedModel=%s nuke=%s removeWeakSources=%s fixIndex=%s""" % (uniqueSourceName, raStep, decStep, tmin, tmax, irfs, fixedModel, nuke, removeWeakSources, fixIndex)
+
+			# Specify where to find the python script
+			if ScriptDirectory != None:
+				command = ScriptDirectory + "/" + command 
+
+			# Construct the process call
+			process = 'bsub -oo ' + logfile + ' -J ' + jobName + ' -W 2880 -R rhel60 -g ' + JobsDirectory + ' "' + command + '"'
+		
+			# Display the command
+			if verbose == True:
+				print process
+
+			# Start the process
+			if test == False:
+				if batch == True:
+
+					# Wait 2 seconds between job submissions
+					time.sleep(2)
+
+					# Execute the command
+					subprocess.call(process, shell=True)
+
+				else:
+
+					# Execture the command
+					os.system(command)
+
+
+			# Increment the bin number
+			JobsInQueue = JobsInQueue + 1
+
+			# Get the number of remaining jobs
+			remainingJobs = (xsize - binNumber)
+
+
+		print "\nTotal number of jobs submitted: %s" % binNumber
+		print "All jobs submitted.\n"
+
+		if 'both' in action:
+
+			print "\nWaiting for the remaining jobs to finish..."
+
+			# Check to see if the number of jobs in the queue is greater than the max.  If so, wait for the jobs to leave the queue before submitting more.
+			while JobsInQueue > 0:
+
+				print "Jobs remaining: %s" % JobsInQueue
+
+				# Wait 60 seconds before polling the job statuses
+				if test == False:
+					time.sleep(60)
+
+					# Get the number of jobs actively in the queue
+					command = "bjobs -g %s | wc" % JobsDirectory	
+					process = subprocess.Popen(command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
+					lines = process.stdout.readlines()
+					
+					# Extract the number of jobs that are running
+					if 'No' in lines[0].split()[0]:
+						JobsInQueue = 0
+					else:
+						JobsInQueue = int(lines[0].split()[0])
+
+
+			print "All jobs done."
+
+
+
+
+	if 'collect' in action or 'both' in action:
+
+		print '\nCollecting results...'
+
+		failedJobs = 0
+		binNumbersRead = []
+		TSs = []
+		photonFluxUpperLimits = []
+
+		# Create dictionaries to store the results
+		LikelihoodResults = []
+		UpperLimitResults = []
+
+		numberOfReturnCode102 = 0
+		numberOfReturnCode0 = 0
+		numberOfReturnCode1 = 0
+		numberOfReturnCode2 = 0
+
+		print '\nReading logs from:\n%s\n' % LogDirectory
+
+		# Get the bin numbers
+		binNumbers = RaDecPairs.keys()
+
+		# Calculate the total number
+		totalNumberOfBins = xsize
+
+		# Loop through each bin numbers
+		for binNumber in binNumbers:
+
+			# print binNumber, float(binNumber), int(float(binNumber)), totalNumberOfBins, int(float(binNumber))/totalNumberOfBins
+
+			sys.stdout.write('\r')
+			sys.stdout.write("Progress: %d%%" % ( ( float(binNumber) / float(totalNumberOfBins) ) * 100 ) )
+			sys.stdout.flush()
+
+			# Get the ra and dec step for each bin number
+			raStep = RaDecPairs[binNumber][0]
+			decStep = RaDecPairs[binNumber][1]
+
+			# Generate a unique source name
+			uniqueSourceName = '%s_b%s' % (sourceName, binNumber)
+
+			# Define the log file
+			logfile = "%s/dtsmap_bin%s.log" % (LogDirectory, binNumber)
+
+			# Set default values
+			ts = numpy.nan
+			photonFluxUpperLimit = numpy.nan
+
+			# parse the log file in search of the results
+			if test == True:
+
+				ts = numpy.random.random()
+				photonFluxUpperLimit = numpy.random.random() * 1e-4
+				energyFluxUpperLimit = numpy.random.random() * 1e-6
+
+				numberOfReturnCode0 = numpy.nan
+				numberOfReturnCode1 = numpy.nan
+				numberOfReturnCode2 = numpy.nan
+				numberOfReturnCode102 = numpy.nan
+
+			elif os.path.isfile(logfile):
+				# print logfile
+
+				# Loop through each line in the file
+				for line in fileinput.input([logfile]):
+
+					# Catch and resubmit failed likelihood fits
+					if 'Return Code: 102' in line:
+
+						failedJobs = failedJobs + 1
+						numberOfReturnCode102 = numberOfReturnCode102 + 1
+
+					if 'Return Code: 0' in line:
+						numberOfReturnCode0 = numberOfReturnCode0 + 1
+
+					if 'Return Code: 1' in line and 'Return Code: 102' not in line:
+						numberOfReturnCode1 = numberOfReturnCode1 + 1
+
+					if 'Return Code: 2' in line:
+						numberOfReturnCode2 = numberOfReturnCode2 + 1
+
+					# Extract the TS value
+					if 'CandidateSource: ' in line:
+						LineContents = line.split()	
+						ts_includingAllSources = float(LineContents[1])	
+
+					# Extract the TS value
+					if 'TS:' in line:
+						LineContents = line.split()	
+						ts = float(LineContents[1])
+
+						# Make sure we don't have negative values
+						if ts < 0: 
+							ts = 0
+
+						# Make sure we don't have any extreme values
+						if ts > 1e20:
+							ts = ts_includingAllSources	
+
+					# Extract the photon flux upper limit
+					if 'Photon Flux Upper Limit:' in line:
+						LineContents = line.split()	
+						photonFluxUpperLimit = LineContents[4]
+
+					# Extract the photon flux upper limit
+					if 'Energy Flux Upper Limit (index=-2.1): ' in line:
+						LineContents = line.split()	
+						energyFluxUpperLimit = LineContents[5]
+
+				if useAlternativeTS == True:
+					ts = ts_includingAllSources
+
+			else:
+				
+				print 'file not found: %s' % logfile
+				failedJobs = failedJobs + 1
+
+			# Store the ts and photon flux values
+			# binNumbersRead.append(binNumber)
+			# TSs.append(ts)
+			# photonFluxUpperLimits.append(photonFluxUpperLimit)
+
+			LikelihoodResults.append(ts)
+
+			if useEnergyUL == True:
+				UpperLimitResults.append(energyFluxUpperLimit)
+			else:
+				UpperLimitResults.append(photonFluxUpperLimit)
+
+
+		print "\nDone."
+
+		print "\nNumber of return code 0: %s" % numberOfReturnCode0
+		print "Number of return code 1: %s" % numberOfReturnCode1
+		print "Number of return code 2: %s" % numberOfReturnCode2
+		print "Number of return code 102: %s\n" % numberOfReturnCode102
+
+		# Pickle the results
+		if pickleResults == True:
+			print "\nPickling results..."
+			print 'Saving likelihood results to: %s' % LikelihoodResultsPickle
+			pickle.dump( LikelihoodResults, open( LikelihoodResultsPickle, "wb" ) )
+			print 'Saving upper limit results to: %s\n' % UpperLimitResultsPickle		
+			pickle.dump( UpperLimitResults, open( UpperLimitResultsPickle, "wb" ) )		
+
+			return 
+
+		else:
+
+			return LikelihoodResults, UpperLimitResults
+
+
+##########################################################################################
+
+def lightcurve(sourceName, ra, dec, tmin, tmax, dt, emin=100, emax=1e5, tsMin=25, irfs='P8R2_SOURCE_V6', association='none', action='both', getData=True, generateFiles=True, nuke=True, fixedModel=True, statistic='UNBINNED', verbose=True, test=False, maxJobs=200, batch=True, resubmit=True, plotLC=True, pickleResults=False, removeWeakSources=True, logCenter=True, annotations=None, xlog=False, ylog=True, fixIndex=True):
 
 	# Define the home directory
 	LikelihoodDirectory = '/nfs/slac/g/ki/ki08/kocevski/Likelihood'
@@ -2858,7 +3221,7 @@ def Lightcurve(sourceName, ra, dec, tmin, tmax, dt, emin=100, emax=1e5, tsMin=25
 
 
 		print "\nTotal number of jobs submitted: %s" % binNumber
-		print "All jobs submitted."
+		print "All jobs submitted.\n"
 
 		return 		
 
@@ -3148,10 +3511,59 @@ def Lightcurve(sourceName, ra, dec, tmin, tmax, dt, emin=100, emax=1e5, tsMin=25
 			pickle.dump( [tstarts, tstops, tsResults, photonFluxResults, photonFluxErrorResults, photonIndexResults, photonIndexErrorResults, photonFluxUpperLimitResults], open( lightcurvePickle, "wb" ) )
 
 
+##########################################################################################
+
+def allSkyExposureMap(sourceName, tmin, tmax, emin=100, emax=1e5, irfs='P8R2_SOURCE_V6', ROI=12, zmax=105):
+
+	# First find where the spacecraft was pointing 
+	time, RA_SCZ, DEC_SCZ = getLATPointing(sourceName, 0, 0, tmin, tmax, getFT1=False)
+
+	# Use the boresight coordinates as fudicial values with which to calculate the all sky exposure
+	sourceAnalysis(sourceName, RA_SCZ[0], DEC_SCZ[0], tmin, tmax, xref_allSky=180, yref_allSky=0, ROI=ROI, zmax=zmax, irfs=irfs, skipDiffuseResponse=True, nuke=False, makeAllSkyExposureMap=True, makeModel=False, performLikelihoodFit=False)
 
 
 ##########################################################################################
 
+def getData(sourceName, ra, dec, tmin, tmax, getFT1=True, getFT2=True):
+
+	sourceAnalysis(sourceName, ra, dec, tmin, tmax, getFT1=getFT1, getFT2=getFT2, generateFiles=False, nuke=False, performLikelihoodFit=False, makeModel=False)
+
+
+##########################################################################################
+
+def getLATPointing(sourceName, ra, dec, tmin, tmax, getFT1=True, getFT2=True, plot=False):
+
+	getData(sourceName, ra, dec, tmin, tmax, getFT1=getFT1, getFT2=getFT2)
+
+	# Get the output directory
+	OutputDirectory = "%s/%s" % (ResultsDirectory, sourceName)
+
+	# Get the FT2 filename
+	FT2File = "%s/ft2_%s.fits" % (OutputDirectory, sourceName)	
+
+	print "\nReading FT2 file:\n%s" % FT2File
+
+	# Open the FT2 file
+	FT2 = pyfits.open(FT2File)
+	data = FT2[1].data
+
+	# extract the coordinates of the spacecraft boresight
+	RA_SCZ = data['RA_SCZ']
+	DEC_SCZ = data['DEC_SCZ']
+
+	# Get the time
+	tstart = data['START']
+	tstop = data['STOP']
+	time = tstart + (tstop - tstart)/2.0
+
+	print "\nLAT Pointing @ %s:\nRA = %s, Dec = %s\n" % (time[0], RA_SCZ[0], DEC_SCZ[0])
+
+
+	return time, RA_SCZ, DEC_SCZ
+
+
+
+##########################################################################################
 
 if __name__ == '__main__':
 
@@ -3255,6 +3667,11 @@ if __name__ == '__main__':
 		else:
 			makedtsmap = False
 
+		if 'makeLIGOdTSMap' in kwargs:
+			makeLIGOdTSMap = BOOL(kwargs['makeLIGOdTSMap'])
+		else:
+			makeLIGOdTSMap = False
+
 		if 'makeModelMap' in kwargs:
 			makeModelMap = BOOL(kwargs['makeModelMap'])
 		else:
@@ -3305,22 +3722,61 @@ if __name__ == '__main__':
 		else:
 			fixIndex  = True
 
+		if 'makeAllSkyExposureMap' in kwargs:
+			makeAllSkyExposureMap  = BOOL(kwargs['makeAllSkyExposureMap'])
+		else:
+			makeAllSkyExposureMap  = False
 
+		if 'picklefile' in kwargs:
+			picklefile = kwargs['picklefile']
+		else:
+			picklefile = None
+
+		picklefile = getkwarg('picklefile', None)		
+
+		print makeLIGOdTSMap
+		print picklefile
 
 		# Set some defaults if this is a tsmap request
 		if maketsmap == True:
 			performLikelihoodFit = False
 			# fixedModel= True
 
+		if makeLIGOdTSMap == True:
+
+			if picklefile == None:
+				print '\nError: must specify a pickefile containing coordinates to create a LIGO dtsmap. Exiting.\n'
+				sys.exit()
+
+			import pickle
+			data = pickle.load( open( picklefile, "rb" ) )
+			RAs = data[0]; Decs = data[1]
+
+			print len(RAs), len(Decs)
+
+			# Create a distributed ts map
+			print "dtsmap_ligo(%s, RAs, Decs, %s, %s, action='submit', irfs=%s, removeWeakSources=False, test=True)" % (sourceName, tmin, tmax, irfs)
+			dtsmap_ligo(sourceName, RAs, Decs, tmin, tmax, action='submit', irfs=irfs, removeWeakSources=False, test=False)
+
+			sys.exit()
+
 		if makedtsmap == True:
 
 			# Create a distributed ts map
 			dtsmap(sourceName, ra, dec, tmin, tmax, dra=dra, ddec=ddec, binsize=binsize, action='submit', irfs=irfs, verbose=True, fixedModel=True, removeWeakSources=True, maxJobs=maxJobs, test=False, fixIndex=fixIndex)
 
+			sys.exit()
+
+		elif makeAllSkyExposureMap == True:
+
+			allSkyExposureMap(sourceName, tmin=tmin, tmax=tmax, irfs=irfs)
+
+			sys.exit()
+
 		else:
 
 			# Run a point source likelihood analysis
-			SourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=emin, emax=emax, dra=dra, ddec=ddec, tsmapBinSize=binsize, association=association, irfs=irfs, getData=getData, generateFiles=generateFiles, justGetData=justGetData, fixedModel=fixedModel, statistic=statistic, performLikelihoodFit=performLikelihoodFit, maketsmap=maketsmap, makeSummaryMap=makeSummaryMap, makeModelMap=makeModelMap, cleanup=cleanup, cleanupAll=cleanupAll, skipDiffuseResponse=skipDiffuseResponse, nuke=nuke, removeWeakSources =removeWeakSources, fixIndex=fixIndex)
+			sourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=emin, emax=emax, dra=dra, ddec=ddec, tsmapBinSize=binsize, association=association, irfs=irfs, getData=getData, generateFiles=generateFiles, justGetData=justGetData, fixedModel=fixedModel, statistic=statistic, performLikelihoodFit=performLikelihoodFit, maketsmap=maketsmap, makeSummaryMap=makeSummaryMap, makeModelMap=makeModelMap, cleanup=cleanup, cleanupAll=cleanupAll, skipDiffuseResponse=skipDiffuseResponse, nuke=nuke, removeWeakSources =removeWeakSources, fixIndex=fixIndex)
 
 
 	else:	
