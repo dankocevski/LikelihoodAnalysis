@@ -35,3 +35,11 @@ Create a light curve for a new point source from METStart to METStop with a binn
 LikelihoodAnalysis.Lightcurve('CandidateSource', RA, Dec, METStart, METStop, 86400, irfs='P8R2_SOURCE_V6') 
 ```
 
+Generate high level LAT data products to be analyzed externally:
+```python
+LikelihoodAnalysis.SourceAnalysis('CandidateSource', RA, Dec, METStart, METStop, irfs='P8R2_SOURCE_V6', performLikelihoodFit=False) 
+
+
+Generate an all sky exposure map between METStart and METStop:
+```python
+LikelihoodAnalysis.allSkyExposureMap('CandidateSource', METStart, METStop, irfs='P8R2_SOURCE_V6') 
