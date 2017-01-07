@@ -50,8 +50,6 @@ from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 print "Done."
 
 
-# Default Global Variables
-
 # Define the default home directory
 LikelihoodDirectory = '/nfs/slac/g/ki/ki08/kocevski/Likelihood'
 
@@ -981,14 +979,14 @@ def sourceAnalysis(sourceName, ra, dec, tmin, tmax, emin=100, emax=1e5, tsMin=25
 
 
 	# Define the home directory
-	LikelihoodDirectory = '/nfs/slac/g/ki/ki08/kocevski/Likelihood'
+	# LikelihoodDirectory = '/nfs/slac/g/ki/ki08/kocevski/Likelihood'
 
 	# Use the working directory if the likelihood directory isn't available.
 	if(os.path.isdir(LikelihoodDirectory) == False):
 		LikelihoodDirectory = os.getcwd()
 
 	# Define the results directory
-	ResultsDirectory = "%s/Results" % (LikelihoodDirectory)
+	# ResultsDirectory = "%s/Results" % (LikelihoodDirectory)
 
 	# Check if the user has write access to this location.  If not, create a subdirectory in the currnet working directory
 	if os.access(ResultsDirectory, os.W_OK) == False:
@@ -3562,8 +3560,57 @@ def getLATPointing(sourceName, ra, dec, tmin, tmax, getFT1=True, getFT2=True, pl
 	return time, RA_SCZ, DEC_SCZ
 
 
+##########################################################################################
+
+def installDependancies(customUserDirectory):
+
+	# Define the default home directory
+	LikelihoodDirectory_default = '/nfs/slac/g/ki/ki08/kocevski/Likelihood'
+
+	# Define the custom home directory
+	LikelihoodDirectory = customUserDirectory
+
+	if os.access(LikelihoodDirectory, os.W_OK) == False:
+
+		if os.path.isdir(LikelihoodDirectory)==False:
+
+			print "\nCreating likelihood directory:\n%s" % LikelihoodDirectory        
+			cmd = "mkdir -p " + LikelihoodDirectory
+			os.system(cmd)
+
+		else:
+
+			print "\Using existing directory:\n%s" % LikelihoodDirectory        
+
+		# Define the default results directory
+		ResultsDirectory = "%s/Results" % (LikelihoodDirectory)
+		print "\nCreating results directory:\n%s" % ResultsDirectory        
+		cmd = "mkdir -p " + ResultsDirectory
+		os.system(cmd)
+
+		# Copy over the diffuse models
+		print "\nCopying over dependancies"
+
+		cmd = "mkdir -p %s/ExtendedSources" % (LikelihoodDirectory)
+		print cmd
+		os.system(cmd)
+
+		cmd = "cp -R %s/ExtendedSources/Templates  %s/ExtendedSources/Templates" % (LikelihoodDirectory_default, LikelihoodDirectory)
+		print cmd
+		os.system(cmd)
+
+		cmd = "cp -R %s/Catalogs %s/Catalogs" % (LikelihoodDirectory_default, LikelihoodDirectory)
+		print cmd
+		os.system(cmd)
+
+		cmd = "mkdir -p %s/DiffuseModels  %s/DiffuseModels" % (LikelihoodDirectory_default, LikelihoodDirectory)
+		print cmd
+		os.system(cmd)
+
+		print "\nInstallation complete."
 
 ##########################################################################################
+
 
 if __name__ == '__main__':
 
