@@ -20,6 +20,11 @@ Importing the module:
 import LikelihoodAnalysis
 ```
 
+Copy the extended source templates, the 3FGL catalog files, and the diffuse and isotropic models to your local directory
+```python 
+LikelihoodAnalysis.installDependancies('~/LikelihoodAnalysis/')
+```
+
 Determine the significance of a new point source and calculate it's flux (or flux upper limit):
 ```python 
 LikelihoodAnalysis.SourceAnalysis('CandidateSource', RA, Dec, METStart, METStop, irfs='P8R2_SOURCE_V6')
@@ -38,8 +43,9 @@ LikelihoodAnalysis.Lightcurve('CandidateSource', RA, Dec, METStart, METStop, 864
 Generate high level LAT data products to be analyzed externally:
 ```python
 LikelihoodAnalysis.SourceAnalysis('CandidateSource', RA, Dec, METStart, METStop, irfs='P8R2_SOURCE_V6', performLikelihoodFit=False) 
-
+```
 
 Generate an all sky exposure map between METStart and METStop:
 ```python
 LikelihoodAnalysis.allSkyExposureMap('CandidateSource', METStart, METStop, irfs='P8R2_SOURCE_V6') 
+```
